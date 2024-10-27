@@ -1,0 +1,11 @@
+vk:
+  bot:
+    access-token: ${VK_BOT_ACCESS_TOKEN}
+  api:
+    url: ${VK_API_URL}
+    version: ${VK_API_VERSION}
+  confirmation:
+    string: ${VK_CONFIRMATION_STRING}
+
+server:
+  port: ${SERVER_PORT}
