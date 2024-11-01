@@ -1,15 +1,16 @@
 package ru.justai.vkechobot.service;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import ru.justai.vkechobot.enum_.Method;
+import ru.justai.vkechobot.util.IdGenerator;
 import ru.justai.vkechobot.util.Mapper;
 import ru.justai.vkechobot.dto.Message;
-import ru.justai.vkechobot.processor.VkApiClient;
+import ru.justai.vkechobot.client.VkApiClient;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 /**
  * Сервис для обработки новых сообщений от пользователей и отправки ответов через VK API.
@@ -18,14 +19,30 @@ import java.util.Random;
 @RequiredArgsConstructor
 public class MessageService {
 
+    /**
+     * Клиент для взаимодействия с VK API.
+     */
     private final VkApiClient vkApiClient;
 
+    /**
+     * Сервис для маппинга объектов.
+     */
     private final Mapper mapper;
 
     /**
-     * Обрабатывает новое сообщение от пользователя, преобразуя его и отправляя в ответ.
+     * Генератор уникальных идентификаторов.
+     */
+    private final IdGenerator idGenerator;
+
+    /**
+     * Шаблон для выполнения повторных попыток отправки запроса.
+     */
+    private final RetryTemplate retryTemplate;
+
+    /**
+     * Обрабатывает новое сообщение, маппит объект и отправляет ответ пользователю.
      *
-     * @param object объект, содержащий данные о новом сообщении.
+     * @param object объект, содержащий данные о событии сообщения
      */
     public void handleNewMessage(Object object) {
         var message = mapper.mapNodeToObject(object, "message", Message.class);
@@ -34,17 +51,19 @@ public class MessageService {
     }
 
     /**
-     * Формирует и отправляет ответное сообщение пользователю через VK API.
+     * Отправляет сообщение пользователю через VK API с использованием повторных попыток.
      *
-     * @param peerId идентификатор получателя сообщения.
-     * @param text текст сообщения.
+     * @param peerId идентификатор получателя сообщения
+     * @param text текст сообщения для отправки
      */
     private void sendMessage(Long peerId, String text) {
         Map<String, String> params = new HashMap<>();
         params.put("peer_id", String.valueOf(peerId));
         params.put("message", "Вы сказали: " + text);
-        params.put("random_id", String.valueOf(new Random().nextInt()));
-        vkApiClient.sendRequest(Method.MESSAGES_SEND, params);
+        params.put("random_id", String.valueOf(idGenerator.generateRandomId(peerId)));
+        retryTemplate.execute(context ->
+                vkApiClient.sendRequest(Method.MESSAGES_SEND, params));
     }
 }
+
 

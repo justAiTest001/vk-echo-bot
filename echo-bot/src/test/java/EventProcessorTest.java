@@ -1,57 +1,39 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import ru.justai.vkechobot.dto.CallbackRequest;
+import ru.justai.vkechobot.enum_.EventType;
 import ru.justai.vkechobot.processor.EventProcessor;
-import ru.justai.vkechobot.service.ConfirmationService;
 import ru.justai.vkechobot.service.MessageService;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
-import static org.mockito.Mockito.when;
 
-public class EventProcessorTest {
+class EventProcessorTest {
 
     private EventProcessor eventProcessor;
 
-    @Mock
-    private ConfirmationService confirmationService;
-
-    @Mock
     private MessageService messageService;
 
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        eventProcessor = new EventProcessor(confirmationService, messageService);
+    void setUp() {
+        messageService = mock(MessageService.class);
+        eventProcessor = new EventProcessor(messageService);
     }
 
     @Test
-    public void testProcessConfirmationEvent() {
-        CallbackRequest callbackRequest = new CallbackRequest();
-        callbackRequest.setType("confirmation");
-        when(confirmationService.handleConfirmation())
-                .thenReturn("confirmation_string");
-        String result = eventProcessor.process(callbackRequest);
-        assertEquals("confirmation_string", result);
-        verify(confirmationService, times(1))
-                .handleConfirmation();
-        verifyNoInteractions(messageService);
+    void process_callsHandleNewMessage_whenEventTypeIsMessageNew() {
+        Object event = new Object();
+        String eventType = EventType.MESSAGE_NEW.value();
+        eventProcessor.process(event, eventType);
+        verify(messageService, times(1)).handleNewMessage(event);
     }
 
     @Test
-    public void testProcessMessageNewEvent() {
-        CallbackRequest callbackRequest = new CallbackRequest();
-        callbackRequest.setType("message_new");
-        callbackRequest.setObject(new Object());
-        String result = eventProcessor.process(callbackRequest);
-        assertEquals("ok", result);
-        verify(messageService, times(1))
-                .handleNewMessage(any());
-        verifyNoInteractions(confirmationService);
+    void process_doesNotCallHandleNewMessage_whenEventTypeIsUnknown() {
+        Object event = new Object();
+        String eventType = "unknown_event_type";
+        eventProcessor.process(event, eventType);
+        verify(messageService, never()).handleNewMessage(any());
     }
 }

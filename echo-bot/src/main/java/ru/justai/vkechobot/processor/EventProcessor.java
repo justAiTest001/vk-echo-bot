@@ -1,43 +1,40 @@
 package ru.justai.vkechobot.processor;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-import ru.justai.vkechobot.enum_.CallbackType;
-import ru.justai.vkechobot.dto.CallbackRequest;
-import ru.justai.vkechobot.service.ConfirmationService;
+import ru.justai.vkechobot.enum_.EventType;
 import ru.justai.vkechobot.service.MessageService;
 
+
 /**
- * Сервис для обработки различных типов событий, получаемых из вебхуков VK API.
+ * Сервис для асинхронной обработки событий от VK API.
+ * Направляет события на соответствующие сервисы для обработки.
  */
 @Service
 @RequiredArgsConstructor
 public class EventProcessor {
 
-    private static final String STATUS_OK = "ok";
-
-    private final ConfirmationService confirmationService;
-
+    /**
+     * Сервис для обработки новых сообщений.
+     */
     private final MessageService messageService;
 
     /**
-     * Обрабатывает входящее событие, определяя его тип и передавая на соответствующий сервис.
+     * Асинхронно обрабатывает событие, определяет его тип и направляет на соответствующий метод обработки.
      *
-     * @param callbackRequest запрос, содержащий данные о событии.
-     * @return статус обработки: строка подтверждения для VK или "ok" при успешной обработке.
+     * @param event объект события
+     * @param eventType строка, представляющая тип события
      */
-    public String process(CallbackRequest callbackRequest) {
-        var event = callbackRequest.getObject();
-        return CallbackType.fromString(callbackRequest.getType())
-                .map(callbackType ->
-                        switch (callbackType) {
-                            case CONFIRMATION -> confirmationService.handleConfirmation();
-                            case MESSAGE_NEW -> {
-                                messageService.handleNewMessage(event);
-                                yield STATUS_OK;
-                            }
-                        })
-                .orElse(STATUS_OK);
+    @Async
+    public void process(Object event, String eventType) {
+        EventType.fromString(eventType)
+                .ifPresent(type -> {
+                    switch (type) {
+                        case MESSAGE_NEW -> messageService.handleNewMessage(event);
+                    }
+                });
     }
 }
+
 

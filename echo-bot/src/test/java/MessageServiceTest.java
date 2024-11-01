@@ -1,47 +1,88 @@
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.retry.support.RetryTemplate;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ContextConfiguration;
+import ru.justai.vkechobot.client.VkApiClient;
+import ru.justai.vkechobot.configuration.RetryConfiguration;
 import ru.justai.vkechobot.dto.Message;
-import ru.justai.vkechobot.enum_.Method;
-import ru.justai.vkechobot.processor.VkApiClient;
+import ru.justai.vkechobot.dto.VkApiError;
+import ru.justai.vkechobot.exception.VkApiRequestRuntimeException;
 import ru.justai.vkechobot.service.MessageService;
+import ru.justai.vkechobot.util.IdGenerator;
 import ru.justai.vkechobot.util.Mapper;
+import util.DtoUtil;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
-
-public class MessageServiceTest {
+@SpringBootTest
+@ContextConfiguration(classes = {RetryConfiguration.class})
+class MessageServiceTest {
 
     private MessageService messageService;
 
-    @Mock
     private VkApiClient vkApiClient;
 
-    @Mock
     private Mapper mapper;
 
+    private IdGenerator idGenerator;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
+
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        messageService = new MessageService(vkApiClient, mapper);
+    void setUp() {
+        vkApiClient = mock(VkApiClient.class);
+        mapper = mock(Mapper.class);
+        idGenerator = mock(IdGenerator.class);
+        messageService = new MessageService(vkApiClient, mapper, idGenerator, retryTemplate);
     }
 
     @Test
-    public void testHandleNewMessage() {
-        var message = new Message();
-        message.setPeerId(123L);
-        message.setText("Hello");
+    void handleNewMessage_success() {
+        prepareMockMessage();
+        when(vkApiClient.sendRequest(any(), any()))
+                .thenReturn(ResponseEntity.ok("Success"));
+        assertDoesNotThrow(() -> messageService.handleNewMessage(new Object()));
+        verify(vkApiClient, times(1)).sendRequest(any(), any());
+    }
+
+    @Test
+    void handleNewMessage_retriesTwiceBeforeSuccess() {
+        prepareMockMessage();
+        VkApiError vkApiError = prepareVkApiError();
+        doThrow(new VkApiRequestRuntimeException(vkApiError))
+                .doThrow(new VkApiRequestRuntimeException(vkApiError))
+                .doReturn(ResponseEntity.ok("Success"))
+                .when(vkApiClient).sendRequest(any(), any());
+        assertDoesNotThrow(() -> messageService.handleNewMessage(new Object()));
+        verify(vkApiClient, times(3)).sendRequest(any(), any());
+    }
+
+    @Test
+    void handleNewMessage_retriesFiveTimesAndFails() {
+        prepareMockMessage();
+        VkApiError vkApiError = prepareVkApiError();
+        doThrow(new VkApiRequestRuntimeException(vkApiError))
+                .when(vkApiClient).sendRequest(any(), any());
+        assertThrows(VkApiRequestRuntimeException.class, () -> messageService.handleNewMessage(new Object()));
+        verify(vkApiClient, times(5)).sendRequest(any(), any());
+    }
+
+    private Message prepareMockMessage() {
+        Message mockMessage = new Message();
+        mockMessage.setPeerId(12345L);
+        mockMessage.setText("Hello");
         when(mapper.mapNodeToObject(any(), eq("message"), eq(Message.class)))
-                .thenReturn(message);
-        messageService.handleNewMessage(new Object());
-        verify(vkApiClient, times(1))
-                .sendRequest(eq(Method.MESSAGES_SEND), anyMap());
+                .thenReturn(mockMessage);
+        when(idGenerator.generateRandomId(12345L))
+                .thenReturn(100);
+        return mockMessage;
+    }
+
+    private VkApiError prepareVkApiError() {
+        return DtoUtil.createVkApiError();
     }
 }
-

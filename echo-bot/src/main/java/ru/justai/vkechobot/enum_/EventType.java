@@ -5,7 +5,7 @@ import java.util.Optional;
 /**
  * Перечисление типов событий обратного вызова (callback), отправляемых VK API.
  */
-public enum CallbackType {
+public enum EventType {
 
     CONFIRMATION("confirmation"),
 
@@ -13,7 +13,7 @@ public enum CallbackType {
 
     private final String type;
 
-    CallbackType(String type) {
+    EventType(String type) {
         this.type = type;
     }
 
@@ -27,15 +27,15 @@ public enum CallbackType {
     }
 
     /**
-     * Преобразует строку в соответствующий элемент перечисления CallbackType.
+     * Преобразует строку в соответствующий элемент перечисления EventType.
      *
      * @param type строка, представляющая тип события.
-     * @return объект Optional с элементом CallbackType, если тип найден; иначе пустой Optional.
+     * @return объект Optional с элементом EventType, если тип найден; иначе пустой Optional.
      */
-    public static Optional<CallbackType> fromString(String type) {
-        for (CallbackType callbackType : CallbackType.values()) {
-            if (callbackType.type.equalsIgnoreCase(type)) {
-                return Optional.of(callbackType);
+    public static Optional<EventType> fromString(String type) {
+        for (EventType eventType : EventType.values()) {
+            if (eventType.type.equalsIgnoreCase(type)) {
+                return Optional.of(eventType);
             }
         }
         return Optional.empty();

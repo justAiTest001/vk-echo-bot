@@ -10,8 +10,18 @@ import org.springframework.core.env.MapPropertySource;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Класс для обработки и добавления переменных среды из файла .env в среду выполнения Spring.
+ * Реализует интерфейс {@link EnvironmentPostProcessor} для внедрения дополнительных источников свойств.
+ */
 public class EnvProcessor implements EnvironmentPostProcessor {
 
+    /**
+     * Загружает переменные из файла .env и добавляет их в среду выполнения приложения.
+     *
+     * @param environment объект {@link ConfigurableEnvironment}, в который добавляются переменные среды
+     * @param application объект {@link SpringApplication}, связанный с контекстом приложения
+     */
     @Override
     public void postProcessEnvironment(ConfigurableEnvironment environment, SpringApplication application) {
         Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
@@ -20,5 +30,6 @@ public class EnvProcessor implements EnvironmentPostProcessor {
         environment.getPropertySources().addLast(new MapPropertySource("dotenvProperties", dotenvProperties));
     }
 }
+
 
 

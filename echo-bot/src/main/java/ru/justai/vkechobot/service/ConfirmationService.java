@@ -5,19 +5,22 @@ import org.springframework.stereotype.Service;
 import ru.justai.vkechobot.configuration.BotConfiguration.BotConfig;
 
 /**
- * Сервис для обработки события подтверждения от VK API.
+ * Сервис для обработки подтверждающих строк, необходимых для интеграции с VK API.
+ * Предоставляет строку подтверждения для верификации.
  */
 @Service
 @RequiredArgsConstructor
 public class ConfirmationService {
 
+    /**
+     * Конфигурация бота, содержащая строку подтверждения.
+     */
     private final BotConfig botConfig;
 
     /**
-     * Обрабатывает запрос на подтверждение вебхука, возвращая строку подтверждения,
-     * полученную из конфигурации.
+     * Возвращает строку подтверждения, необходимую для подтверждения запроса VK API.
      *
-     * @return строка подтверждения для VK API.
+     * @return строка подтверждения из конфигурации бота
      */
     public String handleConfirmation() {
         return botConfig.confirmationString();

@@ -1,5 +1,5 @@
 .gradle
-.logs
+**/logs/
 .env
 .env*
 build/

@@ -2,27 +2,31 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import ru.justai.vkechobot.configuration.BotConfiguration.BotConfig;
 import ru.justai.vkechobot.service.ConfirmationService;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-public class ConfirmationServiceTest {
+class ConfirmationServiceTest {
 
     private ConfirmationService confirmationService;
 
+    private BotConfig botConfig;
+
     @BeforeEach
-    public void setUp() {
-        BotConfig botConfig = new BotConfig(
-                "fake-token",
-                "https://api.vk.com/method",
-                "5.199",
-                "confirmation_string"
-        );
+    void setUp() {
+        botConfig = mock(BotConfig.class);
         confirmationService = new ConfirmationService(botConfig);
     }
 
     @Test
-    public void testHandleConfirmation() {
+    void testHandleConfirmationSuccess() {
+        String expectedConfirmationString = "confirmation_string";
+        when(botConfig.confirmationString())
+                .thenReturn(expectedConfirmationString);
         String result = confirmationService.handleConfirmation();
-        assertEquals("confirmation_string", result);
+        assertEquals(expectedConfirmationString, result);
+        verify(botConfig, times(1)).confirmationString();
     }
 }
