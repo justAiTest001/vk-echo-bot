@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.justai.vkechobot.configuration.BotConfiguration.BotConfig;
 import ru.justai.vkechobot.dto.VkApiError;
@@ -113,6 +114,12 @@ public class VkApiClient {
         var error = mapper.extractError(response);
         return Optional.of(response)
                 .filter(res -> error.isEmpty())
-                .orElseThrow(() -> new VkApiRequestRuntimeException(error.get()));
+                .filter(res -> res.getBody() != null && !res.getBody().isEmpty())
+                .filter(res -> res.getStatusCode().is2xxSuccessful())
+                .orElseThrow(() -> error.map(VkApiRequestRuntimeException::new)
+                        .orElseGet(() ->
+                                new VkApiRequestRuntimeException(
+                                        new VkApiError(500, "An unexpected error occurred"))
+                        ));
     }
 }
