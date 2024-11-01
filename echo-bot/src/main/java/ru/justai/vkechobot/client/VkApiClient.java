@@ -116,12 +116,3 @@ public class VkApiClient {
                 .orElseThrow(() -> new VkApiRequestRuntimeException(error.get()));
     }
 }
-
-
-
-//        if (attemptCounter.incrementAndGet() <= 4) {
-//var vkError = new VkApiError();
-//            vkError.setCode(503);
-//            vkError.setMessage("kek");
-//            throw new VkApiRequestRuntimeException(vkError);
-//        }
