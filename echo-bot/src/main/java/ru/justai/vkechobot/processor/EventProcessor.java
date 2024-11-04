@@ -17,6 +17,7 @@ import ru.justai.vkechobot.event.EventHandler;
 public class EventProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(EventProcessor.class);
+    
     private static final String STATUS_OK = "ok";
 
     /**
