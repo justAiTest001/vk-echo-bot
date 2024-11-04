@@ -2,8 +2,8 @@ package ru.justai.vkechobot.event;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-import ru.justai.vkechobot.configuration.BotConfiguration.BotConfig;
 import ru.justai.vkechobot.enum_.EventType;
+import ru.justai.vkechobot.service.ConfirmationService;
 
 /**
  * Обработчик события подтверждения.
@@ -14,9 +14,9 @@ import ru.justai.vkechobot.enum_.EventType;
 public class EventConfirmator extends Event {
 
     /**
-     * Конфигурация бота для получения строки подтверждения.
+     * Сервис для обработки логики подтверждения.
      */
-    private final BotConfig botConfig;
+    private final ConfirmationService confirmationService;
 
     /**
      * Возвращает тип события CONFIRMATION.
@@ -34,7 +34,7 @@ public class EventConfirmator extends Event {
      * @return строка подтверждения
      */
     public String confirmation() {
-        return botConfig.confirmationString();
+        return confirmationService.handleConfirmation();
     }
 }
 
