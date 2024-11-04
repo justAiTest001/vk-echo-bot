@@ -53,16 +53,16 @@ public class MapperTest {
         String errorJson = """
                 {
                   "error": {
-                      "error_code":14,
-                      "error_msg":"Captcha needed",
-                      "request_params": [
-                        {"key":"oauth", "value":"1"},
-                        {"key":"method", "value":"captcha.force"},
-                        {"key":"uids", "value":"66748"},
-                        {"key":"access_token", "value":"example_token"}
-                      ],
-                      "captcha_sid":"239633676097",
-                      "captcha_img":"http://api.vk.com/captcha.php?sid=239633676097&s=1"
+                    "error_code":14,
+                    "error_msg":"Captcha needed",
+                    "request_params": [
+                      {"key":"oauth", "value":"1"},
+                      {"key":"method", "value":"captcha.force"},
+                      {"key":"uids", "value":"66748"},
+                      {"key":"access_token", "value":"example_token"}
+                    ],
+                    "captcha_sid":"239633676097",
+                    "captcha_img":"http://api.vk.com/captcha.php?sid=239633676097&s=1"
                   }
                 }
                 """;

@@ -52,35 +52,36 @@ class VkApiClientTest {
         String errorJson = """
                 {
                   "error": {
-                      "error_code":14,
-                      "error_msg":"Captcha needed",
-                      "request_params": [
-                        {"key":"oauth", "value":"1"},
-                        {"key":"method", "value":"captcha.force"},
-                        {"key":"uids", "value":"66748"},
-                        {"key":"access_token", "value":"example_token"}
-                      ],
-                      "captcha_sid":"239633676097",
-                      "captcha_img":"http://api.vk.com/captcha.php?sid=239633676097&s=1"
+                    "error_code":14,
+                    "error_msg":"Captcha needed"
                   }
                 }
                 """;
         ResponseEntity<String> errorResponse = ResponseEntity.ok(errorJson);
-        when(botConfig.accessToken()).thenReturn("mockAccessToken");
-        when(botConfig.apiVersion()).thenReturn("5.199");
-        when(uriUtil.createUri(anyString())).thenReturn(URI.create("http://example.com"));
+        prepareBotConfig();
         VkApiError vkApiError = DtoUtil.createVkApiError();
         when(mapper.extractError(errorResponse)).thenReturn(Optional.of(vkApiError));
         when(restTemplate.exchange(any(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class)))
                 .thenReturn(errorResponse);
-        Map<String, String> params = new HashMap<>();
-        params.put("key", "value");
+        Map<String, String> params = prepareRequestParams();
         VkApiRequestRuntimeException exception = assertThrows(VkApiRequestRuntimeException.class, () ->
                 vkApiClient.sendRequest(Method.MESSAGES_SEND, params));
         assertEquals("Captcha needed", exception.getMessage());
         verify(restTemplate, times(1))
                 .exchange(any(), eq(HttpMethod.POST), any(HttpEntity.class), eq(String.class));
         verify(mapper, times(1)).extractError(errorResponse);
+    }
+
+    private void prepareBotConfig() {
+        when(botConfig.accessToken()).thenReturn("mockAccessToken");
+        when(botConfig.apiVersion()).thenReturn("5.199");
+        when(uriUtil.createUri(anyString())).thenReturn(URI.create("http://example.com"));
+    }
+
+    private Map<String, String> prepareRequestParams() {
+        Map<String, String> params = new HashMap<>();
+        params.put("key", "value");
+        return params;
     }
 }
 

@@ -1,13 +1,14 @@
 package ru.justai.vkechobot.client;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import ru.justai.vkechobot.configuration.BotConfiguration.BotConfig;
 import ru.justai.vkechobot.dto.VkApiError;
@@ -30,6 +31,9 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class VkApiClient {
+
+    private static final Logger logger = LoggerFactory.getLogger(VkApiClient.class);
+
 
     /**
      * Объект для выполнения HTTP-запросов.
@@ -59,8 +63,10 @@ public class VkApiClient {
      * @return ответ VK API в виде объекта {@link ResponseEntity}
      */
     public ResponseEntity<String> sendRequest(Method method, Map<String, String> params) {
-        var uri = createUri(method);
-        var payload = createPayload(params);
+        logger.info("Начало отправки запроса к VK API. Метод: {}, Параметры: {}", method, params);
+
+        URI uri = createUri(method);
+        String payload = createPayload(params);
         HttpEntity<String> entity = createHttpEntity(payload);
         ResponseEntity<String> response = restTemplate.exchange(uri, HttpMethod.POST, entity, String.class);
         return getValidatedResponse(response);
@@ -111,7 +117,9 @@ public class VkApiClient {
      * @return валидированный ответ VK API
      */
     private ResponseEntity<String> getValidatedResponse(ResponseEntity<String> response) {
-        var error = mapper.extractError(response);
+        logger.debug("Проверка валидности ответа VK API. Статус ответа: {}, Тело: {}",
+                response.getStatusCode(), response.getBody());
+        Optional<VkApiError> error = mapper.extractError(response);
         return Optional.of(response)
                 .filter(res -> error.isEmpty())
                 .filter(res -> res.getBody() != null && !res.getBody().isEmpty())

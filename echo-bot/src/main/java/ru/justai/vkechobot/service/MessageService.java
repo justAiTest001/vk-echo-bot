@@ -1,6 +1,8 @@
 package ru.justai.vkechobot.service;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 import ru.justai.vkechobot.enum_.Method;
@@ -18,6 +20,8 @@ import java.util.Map;
 @Service
 @RequiredArgsConstructor
 public class MessageService {
+
+    private static final Logger logger = LoggerFactory.getLogger(MessageService.class);
 
     /**
      * Клиент для взаимодействия с VK API.
@@ -45,7 +49,8 @@ public class MessageService {
      * @param object объект, содержащий данные о событии сообщения
      */
     public void handleNewMessage(Object object) {
-        var message = mapper.mapNodeToObject(object, "message", Message.class);
+        logger.info("Начата обработка нового сообщения.");
+        Message message = mapper.mapNodeToObject(object, "message", Message.class);
         String userMessage = message.getText();
         sendMessage(message.getPeerId(), userMessage);
     }
@@ -54,15 +59,19 @@ public class MessageService {
      * Отправляет сообщение пользователю через VK API с использованием повторных попыток.
      *
      * @param peerId идентификатор получателя сообщения
-     * @param text текст сообщения для отправки
+     * @param text   текст сообщения для отправки
      */
     private void sendMessage(Long peerId, String text) {
         Map<String, String> params = new HashMap<>();
         params.put("peer_id", String.valueOf(peerId));
         params.put("message", "Вы сказали: " + text);
         params.put("random_id", String.valueOf(idGenerator.generateRandomId(peerId)));
-        retryTemplate.execute(context ->
-                vkApiClient.sendRequest(Method.MESSAGES_SEND, params));
+        retryTemplate.execute(context -> {
+            logger.debug("Попытка отправки запроса через VK API.");
+            vkApiClient.sendRequest(Method.MESSAGES_SEND, params);
+            logger.info("Сообщение успешно отправлено пользователю с ID: {}", peerId);
+            return null;
+        });
     }
 }
 

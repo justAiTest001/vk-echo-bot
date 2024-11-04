@@ -13,7 +13,7 @@ import ru.justai.vkechobot.exception.BotRuntimeException;
 
 /**
  * Глобальный обработчик исключений для обработки ошибок в приложении.
- * Перехватывает исключения и возвращает клиенту понятные ответы.
+ * Перехватывает исключения и возвращает понятные ответы клиенту.
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
@@ -28,32 +28,32 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BotRuntimeException.class)
     public ResponseEntity<String> handleBotRuntimeException(BotRuntimeException ex) {
-        logger.error("Bot error: {}", ex.getMessage(), ex);
+        logger.error("Ошибка бота: {}", ex.getMessage(), ex);
         return new ResponseEntity<>(ex.getMessage(), HttpStatusCode.valueOf(ex.getStatus()));
     }
 
     /**
-     * Обработка исключений клиента HTTP-запросов (например, 4xx ошибки).
+     * Обработка исключений клиента HTTP-запросов (например, ошибки 4xx).
      *
      * @param ex исключение клиента HTTP-запроса.
      * @return ResponseEntity с информацией об ошибке.
      */
     @ExceptionHandler(HttpClientErrorException.class)
     public ResponseEntity<String> handleHttpClientError(HttpClientErrorException ex) {
-        logger.error("HTTP Client Error: {}", ex.getMessage(), ex);
-        return new ResponseEntity<>("HTTP Client Error: " + ex.getStatusCode(), ex.getStatusCode());
+        logger.error("Ошибка HTTP клиента: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>("Ошибка HTTP клиента: " + ex.getStatusCode(), ex.getStatusCode());
     }
 
     /**
-     * Обработка исключений сервера HTTP-запросов (например, 5xx ошибки).
+     * Обработка исключений сервера HTTP-запросов (например, ошибки 5xx).
      *
      * @param ex исключение сервера HTTP-запроса.
      * @return ResponseEntity с информацией об ошибке.
      */
     @ExceptionHandler(HttpServerErrorException.class)
     public ResponseEntity<String> handleHttpServerError(HttpServerErrorException ex) {
-        logger.error("HTTP Server Error: {}", ex.getMessage(), ex);
-        return new ResponseEntity<>("HTTP Server Error: " + ex.getStatusCode(), ex.getStatusCode());
+        logger.error("Ошибка HTTP сервера: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>("Ошибка HTTP сервера: " + ex.getStatusCode(), ex.getStatusCode());
     }
 
     /**
@@ -64,8 +64,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception ex) {
-        logger.error("Unexpected error occurred: {}", ex.getMessage(), ex);
-        return new ResponseEntity<>("An unexpected error occurred.", HttpStatus.INTERNAL_SERVER_ERROR);
+        logger.error("Произошла непредвиденная ошибка: {}", ex.getMessage(), ex);
+        return new ResponseEntity<>("Произошла непредвиденная ошибка.", HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }
-

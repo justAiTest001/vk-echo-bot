@@ -1,40 +1,60 @@
 package ru.justai.vkechobot.processor;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.scheduling.annotation.Async;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import ru.justai.vkechobot.dto.CallbackRequest;
 import ru.justai.vkechobot.enum_.EventType;
-import ru.justai.vkechobot.service.MessageService;
-
+import ru.justai.vkechobot.event.EventConfirmator;
+import ru.justai.vkechobot.event.EventHandler;
 
 /**
- * Сервис для асинхронной обработки событий от VK API.
- * Направляет события на соответствующие сервисы для обработки.
+ * Сервис для распознавания и обработки событий, полученных от VK Callback API.
  */
 @Service
 @RequiredArgsConstructor
 public class EventProcessor {
 
-    /**
-     * Сервис для обработки новых сообщений.
-     */
-    private final MessageService messageService;
+    private static final Logger logger = LoggerFactory.getLogger(EventProcessor.class);
+    private static final String STATUS_OK = "ok";
 
     /**
-     * Асинхронно обрабатывает событие, определяет его тип и направляет на соответствующий метод обработки.
-     *
-     * @param event объект события
-     * @param eventType строка, представляющая тип события
+     * Распознаватель событий.
      */
-    @Async
-    public void process(Object event, String eventType) {
-        EventType.fromString(eventType)
-                .ifPresent(type -> {
-                    switch (type) {
-                        case MESSAGE_NEW -> messageService.handleNewMessage(event);
+    private final EventRecognizer eventRecognizer;
+
+    /**
+     * Обрабатывает событие VK и возвращает статус обработки.
+     * Выполняет асинхронную обработку события через соответствующий обработчик
+     * и возвращает статус "ok" или строку подтверждения для событий типа CONFIRMATION.
+     *
+     * @param eventPrimal объект с данными события
+     * @return строка статуса обработки события
+     */
+    public String process(CallbackRequest eventPrimal) {
+        logger.info("Начата обработка события с типом: {}", eventPrimal.getType());
+        EventType eventType = EventType.fromString(eventPrimal.getType());
+        Object eventRaw = eventPrimal.getObject();
+
+        return eventRecognizer.recognize(eventType)
+                .map(event -> {
+                    if (EventType.CONFIRMATION.equals(event.type())) {
+                        logger.info("Обработка события подтверждения.");
+                        return ((EventConfirmator) event).confirmation();
+                    } else {
+                        logger.info("Обработка события типа: {}", event.type());
+                        ((EventHandler) event).handle(eventRaw); // выполняется асинхронно
+                        return STATUS_OK;
                     }
+                })
+                .orElseGet(() -> {
+                    logger.warn("Обработчик для типа события '{}' не найден. Возвращен статус по умолчанию: {}",
+                            eventPrimal.getType(),
+                            STATUS_OK
+                    );
+                    return STATUS_OK;
                 });
     }
 }
-
 

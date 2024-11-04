@@ -3,7 +3,7 @@ package ru.justai.vkechobot.controller;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 import ru.justai.vkechobot.dto.CallbackRequest;
-import ru.justai.vkechobot.processor.CallbackRequestProcessor;
+import ru.justai.vkechobot.processor.EventProcessor;
 
 /**
  * Контроллер для обработки входящих запросов от VK API.
@@ -17,7 +17,7 @@ public class WebhookController {
     /**
      * Процессор для обработки входящих запросов.
      */
-    private final CallbackRequestProcessor callbackRequestProcessor;
+    private final EventProcessor eventProcessor;
 
     /**
      * Обрабатывает входящее событие, передавая его процессору для дальнейшей обработки.
@@ -27,6 +27,6 @@ public class WebhookController {
      */
     @PostMapping
     public String handleEvent(@RequestBody CallbackRequest callbackRequest) {
-        return callbackRequestProcessor.process(callbackRequest);
+        return eventProcessor.process(callbackRequest);
     }
 }

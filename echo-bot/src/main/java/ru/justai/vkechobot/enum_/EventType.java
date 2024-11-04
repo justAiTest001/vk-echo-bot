@@ -1,43 +1,63 @@
 package ru.justai.vkechobot.enum_;
 
-import java.util.Optional;
-
 /**
- * Перечисление типов событий обратного вызова (callback), отправляемых VK API.
+ * Перечисление типов событий, используемых для обработки событий VK API.
+ * Определяет возможные типы событий и методы для работы с ними.
  */
 public enum EventType {
 
+    /**
+     * Неизвестный тип события.
+     */
+    UNKNOWN("unknown"),
+
+    /**
+     * Событие подтверждения.
+     */
     CONFIRMATION("confirmation"),
 
+    /**
+     * Событие нового сообщения.
+     */
     MESSAGE_NEW("message_new");
 
+    /**
+     * Строковое представление типа события.
+     */
     private final String type;
 
+    /**
+     * Конструктор перечисления с заданием строкового представления типа.
+     *
+     * @param type строковое представление типа события
+     */
     EventType(String type) {
         this.type = type;
     }
 
     /**
-     * Возвращает строковое представление типа события.
+     * Возвращает строковое значение типа события.
      *
-     * @return строка, представляющая тип события.
+     * @return строковое представление типа события
      */
     public String value() {
         return type;
     }
 
     /**
-     * Преобразует строку в соответствующий элемент перечисления EventType.
+     * Возвращает объект {@link EventType} на основе переданной строки.
+     * Сравнение производится без учета регистра.
      *
-     * @param type строка, представляющая тип события.
-     * @return объект Optional с элементом EventType, если тип найден; иначе пустой Optional.
+     * @param type строковое представление типа события
+     * @return соответствующий объект {@link EventType} или {@code null}, если тип не найден
      */
-    public static Optional<EventType> fromString(String type) {
+    public static EventType fromString(String type) {
         for (EventType eventType : EventType.values()) {
             if (eventType.type.equalsIgnoreCase(type)) {
-                return Optional.of(eventType);
+                return eventType;
             }
         }
-        return Optional.empty();
+        return null;
     }
 }
+
