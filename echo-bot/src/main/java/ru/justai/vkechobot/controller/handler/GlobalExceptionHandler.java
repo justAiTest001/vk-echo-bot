@@ -1,4 +1,4 @@
-package ru.justai.vkechobot.exception.handler;
+package ru.justai.vkechobot.controller.handler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
