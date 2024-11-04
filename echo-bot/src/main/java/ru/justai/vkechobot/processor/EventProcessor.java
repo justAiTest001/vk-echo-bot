@@ -37,7 +37,6 @@ public class EventProcessor {
         logger.info("Начата обработка события с типом: {}", eventPrimal.getType());
         EventType eventType = EventType.fromString(eventPrimal.getType());
         Object eventRaw = eventPrimal.getObject();
-
         return eventRecognizer.recognize(eventType)
                 .map(event -> {
                     if (EventType.CONFIRMATION.equals(event.type())) {
