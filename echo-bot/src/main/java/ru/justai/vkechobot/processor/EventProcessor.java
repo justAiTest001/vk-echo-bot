@@ -49,10 +49,7 @@ public class EventProcessor {
                     }
                 })
                 .orElseGet(() -> {
-                    logger.warn("Обработчик для типа события '{}' не найден. Возвращен статус по умолчанию: {}",
-                            eventPrimal.getType(),
-                            STATUS_OK
-                    );
+                    logger.warn("Обработчик не найден для типа события: {}", eventPrimal.getType());
                     return STATUS_OK;
                 });
     }
