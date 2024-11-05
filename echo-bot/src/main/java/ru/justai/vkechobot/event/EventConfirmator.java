@@ -11,7 +11,7 @@ import ru.justai.vkechobot.service.ConfirmationService;
  */
 @Component
 @RequiredArgsConstructor
-public class EventConfirmator extends Event {
+public class EventConfirmator implements Event {
 
     /**
      * Сервис для обработки логики подтверждения.

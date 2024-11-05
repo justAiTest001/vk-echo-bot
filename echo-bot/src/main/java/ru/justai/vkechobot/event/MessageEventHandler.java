@@ -12,7 +12,7 @@ import ru.justai.vkechobot.service.MessageService;
  */
 @Component
 @RequiredArgsConstructor
-public class MessageEventHandler extends EventHandler {
+public class MessageEventHandler implements EventHandler {
 
     /**
      * Сервис для обработки сообщений.
